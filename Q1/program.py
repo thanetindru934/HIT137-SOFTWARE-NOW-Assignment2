@@ -1,24 +1,25 @@
-# Q1
-# File Encryption & Decryption
+#Q1
+#File Encryption & Decryption
 
 ALPHABET_SIZE = 26
 
-#Markers (#, $, @, %) are used to preserve rule information
-#so that decryption can correctly reverse the encryption
+#Markers (#, $, @, %) are used to store which rule was applied during encryption
+#ensures accurate and unambiguous decryption
 
 
-#Function to shift characters
+#Helper function:Shifts a character within alphabet using modular arithmetic.
 def shift_character(c, shift):
     if c.islower():
         return chr((ord(c) - ord('a') + shift) % ALPHABET_SIZE + ord('a'))
     elif c.isupper():
         return chr((ord(c) - ord('A') + shift) % ALPHABET_SIZE + ord('A'))
-    return c  # Non-alphabet characters unchanged
+    return c  #Non-alphabet characters unchanged
 
 
-#Encryption Function
+#Encryption Function:Reads raw_text.txt and writes encrypted content.
 def encrypt_file():
     try:
+        # Context manager for safe file handling
         with open("raw_text.txt", "r") as infile, open("encrypted_text.txt", "w") as outfile:
 
             for ch in infile.read():
@@ -26,24 +27,24 @@ def encrypt_file():
                 #LOWERCASE LETTERS
                 if ch.islower():
                     if 'a' <= ch <= 'm':
-                        new_char = shift_character(ch, shift1 * shift2)
-                        outfile.write(new_char + "#")   # Rule 1 marker
+                        new_char = shift_character(ch, shift1 * shift2) # First half: shift forward
+                        outfile.write(new_char + "#")   #Marker for Rule 1
                     else:
-                        new_char = shift_character(ch, -(shift1 + shift2))
-                        outfile.write(new_char + "$")   # Rule 2 marker
+                        new_char = shift_character(ch, -(shift1 + shift2)) # Second half: shift backward
+                        outfile.write(new_char + "$")   #Marker for Rule 2
 
                 #UPPERCASE LETTERS
                 elif ch.isupper():
                     if 'A' <= ch <= 'M':
-                        new_char = shift_character(ch, -shift1)
-                        outfile.write(new_char + "@")   # Rule 3 marker
+                        new_char = shift_character(ch, -shift1)   # First half: shift backward
+                        outfile.write(new_char + "@")   #Marker for Rule 3
                     else:
-                        new_char = shift_character(ch, shift2 ** 2)
-                        outfile.write(new_char + "%")   # Rule 4 marker
+                        new_char = shift_character(ch, shift2 ** 2) # Second half: shift forward (square of shift2)
+                        outfile.write(new_char + "%")   #Marker for Rule 4
 
-                #OTHER CHARACTERS
+                #OTHER CHARACTERS (spaces, digits, symbols)
                 else:
-                    outfile.write(ch)
+                    outfile.write(ch)  #no change.
 
         print("Encryption done")
 
@@ -65,25 +66,25 @@ def decrypt_file():
                 if i + 1 < len(text) and ch.isalpha():
                     marker = text[i + 1]
 
-                    if marker == "#":  # Rule 1
+                    if marker == "#":  # Rule 1: reverse shift1 * shift2
                         new_char = shift_character(ch, -(shift1 * shift2))
                         outfile.write(new_char)
                         i += 2
                         continue
 
-                    elif marker == "$":  # Rule 2
+                    elif marker == "$":  # Rule 2, reverse (shift1 + shift2)
                         new_char = shift_character(ch, (shift1 + shift2))
                         outfile.write(new_char)
                         i += 2
                         continue
 
-                    elif marker == "@":  # Rule 3
+                    elif marker == "@":  # Rule 3, reverse shift1
                         new_char = shift_character(ch, shift1)
                         outfile.write(new_char)
                         i += 2
                         continue
 
-                    elif marker == "%":  # Rule 4
+                    elif marker == "%":  # Rule 4, reverse shift2 ** 2
                         new_char = shift_character(ch, -(shift2 ** 2))
                         outfile.write(new_char)
                         i += 2
@@ -98,7 +99,7 @@ def decrypt_file():
     except FileNotFoundError:
         print("encrypted_text.txt not found")
 
-#Verification Function
+#Verification Function: Compares original and decrypted files
 def verify_decryption():
     try:
         with open("raw_text.txt", "r") as f1, open("decrypted_text.txt", "r") as f2:
@@ -113,7 +114,7 @@ def verify_decryption():
         print("File missing")
 
 
-#Main Function
+#Main Function: Controls program execution
 def main():
     global shift1, shift2
 
@@ -121,11 +122,11 @@ def main():
     shift1 = int(input("Enter shift1: "))
     shift2 = int(input("Enter shift2: "))
 
-    #Program flow
+    #Program flow in order
     encrypt_file()
     decrypt_file()
     verify_decryption()
 
-
+#Entry point of program
 if __name__ == "__main__":
     main()
