@@ -60,10 +60,7 @@ def tokenize(expr):
 
         if (t1 == NUM and t2 == LPAREN) or \
            (t1 == RPAREN and t2 == NUM) or \
-           (t1 == RPAREN and t2 == LPAREN) or \
-           (t1 == NUM and t2 == NUM) or \
-           (t1 == NUM and t2 == OP and v2 == "-") or \
-           (t1 == RPAREN and t2 == OP and v2 == "-"):
+           (t1 == RPAREN and t2 == LPAREN):
             new_tokens.append((OP, "*"))  #insert the implicit multiplication.
 
     new_tokens.append(tokens[-1])
