@@ -1,15 +1,13 @@
 #Assignment 2 - Q2
-#Expression Evaluator (Recursive Descent)
+#Expression Evaluator using Recursive Descent Parsing.
 
 import os
 
-#Token types
+#Token types for the tokenizer.
 NUM, OP, LPAREN, RPAREN, END = "NUM", "OP", "LPAREN", "RPAREN", "END"
 
 
-
-#Tokenizer
-
+#Tokenizer, Converts input string into tokens.
 def tokenize(expr):
     tokens = []
     i = 0
@@ -17,11 +15,11 @@ def tokenize(expr):
     while i < len(expr):
         ch = expr[i]
 
-        #Ignore spaces
+        # Ignore whitespace
         if ch.isspace():
             i += 1
 
-        #Numbers (multi-digit)
+        #Handle numbers and supports multi-digit
         elif ch.isdigit():
             num = ch
             i += 1
@@ -30,19 +28,18 @@ def tokenize(expr):
                 i += 1
             tokens.append((NUM, num))
 
-        #Operators
+        #Handle the operators (+, -, *, /)
         elif ch in "+-*/":
-            #Reject unary +
+            # Reject unary '+' as per requirement
             if ch == "+" and (i == 0 or expr[i-1] in "(+-*/"):
                 raise Exception("Unary + not allowed")
             tokens.append((OP, ch))
             i += 1
 
-        #Parentheses
+        #handle the parentheses
         elif ch == "(":
             tokens.append((LPAREN, ch))
             i += 1
-
         elif ch == ")":
             tokens.append((RPAREN, ch))
             i += 1
@@ -50,37 +47,35 @@ def tokenize(expr):
         else:
             raise Exception("Invalid character")
 
-    #Add END token
+    #append the END token to mark end of input
     tokens.append((END, ""))
 
-  
-    #Implicit multiplication handling
-    
+    #handle implicit multiplication (like 2(3+4), (2+3)(4+5))
     new_tokens = []
-    for i in range(len(tokens)-1):
+    for i in range(len(tokens) - 1):
+        t1, v1 = tokens[i]
+        t2, v2 = tokens[i + 1]
+
         new_tokens.append(tokens[i])
 
-        #NUM followed by LPAREN → insert *
-        if tokens[i][0] == NUM and tokens[i+1][0] == LPAREN:
-            new_tokens.append((OP, "*"))
-
-        #RPAREN followed by NUM → insert *
-        if tokens[i][0] == RPAREN and tokens[i+1][0] == NUM:
-            new_tokens.append((OP, "*"))
+        if (t1 == NUM and t2 == LPAREN) or \
+           (t1 == RPAREN and t2 == NUM) or \
+           (t1 == RPAREN and t2 == LPAREN) or \
+           (t1 == NUM and t2 == NUM) or \
+           (t1 == NUM and t2 == OP and v2 == "-") or \
+           (t1 == RPAREN and t2 == OP and v2 == "-"):
+            new_tokens.append((OP, "*"))  #insert the implicit multiplication.
 
     new_tokens.append(tokens[-1])
-
     return new_tokens
 
 
-#Format tokens into required string format
+#format tokens into required output format
 def format_tokens(tokens):
     return " ".join([f"[{t}:{v}]" if t != END else "[END]" for t, v in tokens])
 
 
-
-#Parser (Recursive Descent)
-
+#recursive Descent Parser (handles the operator precedence)
 def parse(tokens):
     pos = 0
 
@@ -95,7 +90,7 @@ def parse(tokens):
         pos += 1
         return tok
 
-    #Expression → handles + and -
+    # expr --term (+/- term)
     def expr():
         node = term()
         while current()[0] == OP and current()[1] in "+-":
@@ -103,7 +98,7 @@ def parse(tokens):
             node = (op, node, term())
         return node
 
-    #Term -- handles * and /
+    # term----factor (* / factor)
     def term():
         node = factor()
         while current()[0] == OP and current()[1] in "*/":
@@ -111,20 +106,24 @@ def parse(tokens):
             node = (op, node, factor())
         return node
 
-    # Factor -- handles unary negation
+    # factor ----unary negation or primary.
     def factor():
+        if current()[0] == OP and current()[1] == "+":
+            raise Exception("Unary + not allowed")
+
         if current()[0] == OP and current()[1] == "-":
             eat(OP)
             return ("neg", factor())
+
         return primary()
 
-    #Primary, numbers or parentheses
+    # primary---- number or expression.
     def primary():
         tok = current()
 
         if tok[0] == NUM:
             eat(NUM)
-            return int(tok[1])
+            return ("num", float(tok[1]))
 
         elif tok[0] == LPAREN:
             eat(LPAREN)
@@ -137,38 +136,40 @@ def parse(tokens):
 
     tree = expr()
 
-    #Ensure no extra input remains
+    #ensure the  full expression is consumed
     if current()[0] != END:
         raise Exception("Extra input")
 
     return tree
 
 
-
-#Convert tree to string format
-
+# Convert parse tree into required string format
 def tree_to_string(node):
-    if isinstance(node, int):
-        return str(node)
+    if isinstance(node, tuple) and node[0] == "num":
+        val = node[1]
+        return str(int(val)) if val.is_integer() else str(val)
 
-    if node[0] == "neg":
+    if isinstance(node, tuple) and node[0] == "neg":
         return f"(neg {tree_to_string(node[1])})"
 
-    op, left, right = node
-    return f"({op} {tree_to_string(left)} {tree_to_string(right)})"
+    if isinstance(node, tuple):
+        op, left, right = node
+        return f"({op} {tree_to_string(left)} {tree_to_string(right)})"
+
+    return str(node)
 
 
-
-#Evaluate expression tree
-
+#evaluate the expression tree recursively
 def evaluate(node):
-    if isinstance(node, int):
-        return float(node)
+    if isinstance(node, tuple) and node[0] == "num":
+        return node[1]
 
-    if node[0] == "neg":
+    if isinstance(node, tuple) and node[0] == "neg":
         return -evaluate(node[1])
 
-    op, l, r = node[0], evaluate(node[1]), evaluate(node[2])
+    op, l_node, r_node = node
+    l = evaluate(l_node)
+    r = evaluate(r_node)
 
     if op == "+": return l + r
     if op == "-": return l - r
@@ -179,16 +180,12 @@ def evaluate(node):
         return l / r
 
 
-#Format result as required
+#format the result as integer or 4 decimal places
 def format_result(val):
-    if val == int(val):
-        return str(int(val))
-    return f"{val:.4f}"
+    return str(int(val)) if val == int(val) else f"{val:.4f}"
 
 
-
-#Main function (Required Interface)
-
+#Main function, processes input file and writes output.txt
 def evaluate_file(input_path: str):
     results = []
     output_lines = []
@@ -210,13 +207,16 @@ def evaluate_file(input_path: str):
                 value = evaluate(tree)
                 result_str = format_result(value)
             except Exception:
+                value = None
                 result_str = "ERROR"
 
         except Exception:
             tree_str = "ERROR"
             tokens_str = "ERROR"
+            value = None
             result_str = "ERROR"
 
+        #Stores the results as required dictionary format.
         results.append({
             "input": expr,
             "tree": tree_str,
@@ -224,6 +224,7 @@ def evaluate_file(input_path: str):
             "result": result_str if result_str == "ERROR" else float(value)
         })
 
+        # Write formatted output block
         output_lines.append(f"Input: {expr}")
         output_lines.append(f"Tree: {tree_str}")
         output_lines.append(f"Tokens: {tokens_str}")
@@ -237,6 +238,6 @@ def evaluate_file(input_path: str):
     return results
 
 
-#Run directly
+#Entry point
 if __name__ == "__main__":
     evaluate_file("sample_input.txt")
