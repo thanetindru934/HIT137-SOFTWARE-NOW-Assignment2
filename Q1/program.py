@@ -42,7 +42,7 @@ def encrypt_file():
                         new_char = shift_character(ch, shift2 ** 2) # Second half: shift forward (square of shift2)
                         outfile.write(new_char + "%")   #Marker for Rule 4
 
-                #OTHER CHARACTERS (spaces, digits, symbols)
+                #OTHER CHARACTERS (Spaces, tabs, newlines, special characters, and numbers )
                 else:
                     outfile.write(ch)  #no change.
 
