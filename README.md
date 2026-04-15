@@ -57,26 +57,24 @@ When run, the program will:
 4. Verify that `decrypted_text.txt` matches `raw_text.txt` and print the result
 
 ---
+The encryption function writes a marker after each transformed letter to record which rule was applied. During decryption, these markers are read to reverse the exact shift and recover the original text.
 
 ## Question 2 – Mathematical Expression Evaluator
 
 ### Overview
 A Python program that reads mathematical expressions from a text file (one per line), parses and evaluates each using **recursive descent parsing**, and writes the results to an output file.
 
-The solution is built entirely from plain functions (no classes), where each level of operator precedence is handled by its own function.
+The solution is built entirely from plain functions (no classes). Operator precedence is handled by separate functions: `expr()` for `+ -`, `term()` for `* /`, `factor()` for unary negation, and `primary()` for numbers or parentheses.
 
 ### Supported Features
-
 - Basic operators: `+`, `-`, `*`, `/`
 - Parentheses nested to any depth
 - Unary negation (e.g. `-5`, `--5`, `-(3+4)`)
-- Implicit multiplication (e.g. `2(3+4)`)
-- Unary `+` is **not** supported and will produce an `ERROR`
+- Implicit multiplication (e.g. `2(3+4)` or `(2+3)(4+5)`)
+- Unary `+` is **not** supported and produces `ERROR`
 
 ### Output Format
-
 For each expression, the output file contains a four-line block:
-
 ```
 Input: <original expression>
 Tree: <parse tree representation>
