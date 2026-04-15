@@ -90,7 +90,7 @@ Tokens: [NUM:3] [OP:+] [NUM:5] [END]
 Result: 8
 ```
 
-Blocks are separated by a blank line. Results that are whole numbers are displayed without a decimal point; otherwise they are rounded to 4 decimal places.
+Blocks are separated by a blank line. Results that are whole numbers are displayed without a decimal point; otherwise, they are rounded to 4 decimal places.
 
 ### Token Types
 
