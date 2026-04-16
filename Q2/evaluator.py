@@ -8,6 +8,7 @@ NUM, OP, LPAREN, RPAREN, END = "NUM", "OP", "LPAREN", "RPAREN", "END"
 
 
 #Tokenizer, Converts input string into tokens.
+#Scans character-by-character and groups digits into multi-digit numbers
 def tokenize(expr):
     tokens = []
     i = 0
@@ -103,7 +104,7 @@ def parse(tokens):
             node = (op, node, factor())
         return node
 
-    # factor ----unary negation or primary.
+    # factor handles the unary negation and primary expressions.
     def factor():
         if current()[0] == OP and current()[1] == "+":
             raise Exception("Unary + not allowed")
@@ -114,7 +115,7 @@ def parse(tokens):
 
         return primary()
 
-    # primary---- number or expression.
+    # primary---- number or parenthesized expression.
     def primary():
         tok = current()
 
@@ -140,7 +141,7 @@ def parse(tokens):
     return tree
 
 
-# Convert parse tree into required string format
+# Convert parse tree into required prefix notation format
 def tree_to_string(node):
     if isinstance(node, tuple) and node[0] == "num":
         val = node[1]
@@ -183,6 +184,7 @@ def format_result(val):
 
 
 #Main function, processes input file and writes output.txt
+#Handles the tokenization, parsing, evaluation, and the error handling
 def evaluate_file(input_path: str):
     results = []
     output_lines = []
@@ -235,6 +237,6 @@ def evaluate_file(input_path: str):
     return results
 
 
-#Entry point
+#Entry point Entry point, runs the program only when file is executed directly
 if __name__ == "__main__":
     evaluate_file("sample_input.txt")
