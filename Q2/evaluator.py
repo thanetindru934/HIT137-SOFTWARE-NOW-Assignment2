@@ -237,6 +237,6 @@ def evaluate_file(input_path: str):
     return results
 
 
-#Entry point Entry point, runs the program only when file is executed directly
+#Entry point, runs the program only when file is executed directly
 if __name__ == "__main__":
     evaluate_file("sample_input.txt")
