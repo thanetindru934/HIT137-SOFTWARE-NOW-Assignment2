@@ -185,7 +185,7 @@ def format_result(val):
 
 #Main function, processes input file and writes output.txt
 #Handles the tokenization, parsing, evaluation, and the error handling
-def evaluate_file(input_path: str):
+def evaluate_file(input_path: str)-> list[dict]:
     results = []
     output_lines = []
 
